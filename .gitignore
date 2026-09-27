@@ -1,0 +1,8 @@
+.venv/*
+.idea/*
+.env
+__pycache__/*
+practice/*
+.streamlit/*
+
+random_generator.py

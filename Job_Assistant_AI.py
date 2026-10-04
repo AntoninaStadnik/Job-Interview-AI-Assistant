@@ -201,7 +201,7 @@ if user_text:
     for job in response_ai.jobs:
         st.markdown(f"- {job}")
 
-#add 2 agents - Analyst and Interview
+#add 2 agents - Analyst agent and Interview
 
 
 

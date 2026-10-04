@@ -6,3 +6,6 @@ practice/*
 .streamlit/*
 
 random_generator.py
+
+.streamlit/secrets.toml
+streamlit/streamlit.toml

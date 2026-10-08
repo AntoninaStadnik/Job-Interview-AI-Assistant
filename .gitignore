@@ -9,3 +9,6 @@ random_generator.py
 
 .streamlit/secrets.toml
 streamlit/streamlit.toml
+
+__pycache__/
+*.pyc

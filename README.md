@@ -1,40 +1,92 @@
-🤖 Job Assistant AI
+# Job Assistant AI
 
 AI-powered assistant for job search and technical interview preparation.
 
-📌 About the Project
+## About the Project
 
-Job Assistant AI is an educational project that uses a generative AI model to help users prepare for the job search and technical interviews.
+Job Assistant AI is an educational project built with Python, LangChain, Google Gemini and Streamlit.
 
-The application analyzes the user's skills and experience, searches for relevant job vacancies, compares the user's skills with job requirements, and provides a simulated technical interview.
+The application helps users prepare for the job search and technical interviews.
 
-The project is built with Python, LangChain, Google Gemini and Streamlit.
+The application follows three main stages:
 
-🎯 Main Features
+1. User profile generation
+2. Job vacancy search and matching
+3. Mock technical interview
 
-The application consists of three specialized AI agents.
+The user provides information about their experience, skills and desired position. The application analyzes this information, searches for relevant job vacancies, allows the user to select a vacancy, and generates a technical mock interview based on the selected vacancy and the user's profile.
 
-🔎 Agent 1 — Job Search Agent
+## Main Features
 
-The first agent helps the user find relevant job vacancies.
+### 1. User Profile Generation
 
-The user provides:
+The first stage analyzes the user's free-text input and converts it into a structured professional profile.
 
-desired position;
+The profile contains:
 
-technical skills;
+* desired position;
+* professional experience;
+* technical skills.
 
-experience.
+The profile is represented using a Pydantic model:
 
-The agent uses this information to search for suitable vacancies and returns relevant job opportunities.
+```text
+UserProfile
+├── skills
+├── experience
+└── desired_position
+```
 
 Example:
 
-User skills:
-Python, FastAPI, SQL, Docker
+```text
+User input:
 
-Desired position:
-Python Backend Developer
+I am a Python developer with 2 years of experience.
+I have experience with FastAPI, SQL, Docker and PostgreSQL.
+I am looking for a Python Backend Developer position.
+
+↓
+
+Career Profile Chain
+
+↓
+
+Structured User Profile:
+
+Desired position: Python Backend Developer
+Experience: 2 years
+Skills: Python, FastAPI, SQL, Docker, PostgreSQL
+```
+
+### 2. Job Search
+
+The second stage searches for current job vacancies based on the user's profile.
+
+The application uses a custom search tool powered by Google Serper.
+
+The Job Search Agent receives:
+
+* desired position;
+* technical skills;
+* experience.
+
+It uses the search tool to find relevant vacancies on the web.
+
+The search results are then processed by a LangChain chain that structures the results using Pydantic.
+
+Each vacancy contains:
+
+* a job vacancy link;
+* a short explanation of why the vacancy may be relevant to the user.
+
+Example:
+
+```text
+User profile:
+
+Position: Python Backend Developer
+Skills: Python, FastAPI, SQL, Docker
 
 ↓
 
@@ -42,274 +94,363 @@ Job Search Agent
 
 ↓
 
-Relevant vacancies
+Web search
 
-📊 Agent 2 — Tech Lead Agent
+↓
 
-The second agent acts as a Technical Lead.
+Relevant job vacancies
+```
 
-It analyzes the requirements of a selected vacancy and compares them with the user's skills and experience.
+### 3. Mock Interview
 
-The agent identifies:
+The third stage generates a technical mock interview based on the user's profile and the selected vacancy.
 
-skills that match the vacancy requirements;
+The interview contains:
 
-missing skills;
+* 10 unique technical questions;
+* 4 answer options for each question;
+* the correct answer;
+* an explanation of the correct answer.
 
-skills that require improvement;
+The interview structure is represented using Pydantic models:
 
-recommendations for preparation.
+```text
+MockInterview
+└── questions
+    ├── Question 1
+    ├── Question 2
+    ├── ...
+    └── Question 10
+```
+
+Each question contains:
+
+```text
+Question
+├── question
+├── options
+├── correct_answer
+└── explanation
+```
+
+The user answers all 10 questions through the Streamlit interface.
+
+After completing the interview, the user clicks the "Check Answer" button and receives the total number of:
+
+* correct answers;
+* incorrect answers.
 
 Example:
 
-Job requirements:
+```text
+Mock Interview
 
-Python
-FastAPI
-PostgreSQL
-Docker
-AWS
+Question 1
+[Option 1]
+[Option 2]
+[Option 3]
+[Option 4]
 
-User skills:
-
-Python
-FastAPI
-SQL
-Docker
-
-↓
-
-Tech Lead Agent
-
-↓
-
-Strong matches:
-Python
-FastAPI
-Docker
-
-Missing skills:
-PostgreSQL
-AWS
-
-Recommendations:
-Practice PostgreSQL
-Learn AWS fundamentals
-
-🎤 Agent 3 — Mock Interview Agent
-
-The third agent simulates a technical interview.
-
-The agent generates technical questions based on:
-
-the selected job position;
-
-job requirements;
-
-user's skills;
-
-identified skill gaps.
-
-The user answers the questions through the Streamlit interface.
-
-The agent then analyzes the answer and provides feedback.
-
-Example:
-
-Interviewer:
-
-What is the difference between
-asyncio and threading in Python?
-
-User:
-
-[User's answer]
-
-↓
-
-AI evaluation
-
-Score: 7/10
-
-Strengths:
-- Correct understanding of asynchronous execution
-
-Needs improvement:
-- Event loop
-- I/O-bound operations
-
-Recommended answer:
 ...
 
-🏗️ Application Architecture
+Question 10
+[Option 1]
+[Option 2]
+[Option 3]
+[Option 4]
+
+↓
+
+Check Answer
+
+↓
+
+Correct answers: 8
+Incorrect answers: 2
+```
+
+## Application Architecture
+
+```text
                          USER
-                           │
-                           ▼
-                  ┌─────────────────┐
-                  │    Streamlit    │
-                  │       UI        │
-                  └────────┬────────┘
-                           │
-             ┌─────────────┼─────────────┐
-             │             │             │
-             ▼             ▼             ▼
-       ┌───────────┐ ┌───────────┐ ┌──────────────┐
-       │  Agent 1  │ │  Agent 2  │ │   Agent 3    │
-       │Job Search │ │ Tech Lead │ │Mock Interview│
-       └─────┬─────┘ └─────┬─────┘ └──────┬───────┘
-             │             │              │
-             ▼             ▼              ▼
-          Vacancies    Skill Analysis   Questions
-                        & Skill Gaps     & Feedback
+                           |
+                           v
+                  +------------------+
+                  |    Streamlit     |
+                  |       UI         |
+                  +--------+---------+
+                           |
+                           v
+                  +------------------+
+                  | User Profile     |
+                  | Generation       |
+                  | Chain            |
+                  +--------+---------+
+                           |
+                           v
+                  +------------------+
+                  | Job Search Agent |
+                  +--------+---------+
+                           |
+                           v
+                  +------------------+
+                  | Google Serper    |
+                  | Web Search       |
+                  +--------+---------+
+                           |
+                           v
+                  +------------------+
+                  | Job Search       |
+                  | Results          |
+                  +--------+---------+
+                           |
+                           v
+                  User selects vacancy
+                           |
+                           v
+                  +------------------+
+                  | Mock Interview    |
+                  | Chain             |
+                  +--------+---------+
+                           |
+                           v
+                  +------------------+
+                  | 10 Questions      |
+                  | 4 Options Each    |
+                  +--------+---------+
+                           |
+                           v
+                  User submits answers
+                           |
+                           v
+                  +------------------+
+                  | Result            |
+                  | Correct / Wrong   |
+                  +------------------+
+```
 
-🛠️ Technologies
+## Technologies
 
-Python — main programming language
+### Python
 
-Google Gemini — generative AI model
+Main programming language used to build the application.
 
-LangChain — framework for working with LLMs and AI agents
+### Google Gemini
 
-Pydantic — structured data validation
+Generative AI model used for:
 
-Streamlit — web interface
+* user profile analysis;
+* job search result processing;
+* technical interview generation.
 
-python-dotenv — environment variable management
+### LangChain
 
-📂 Project Structure
+Framework used to build LLM chains, prompts, output parsers and AI agents.
+
+The project uses LangChain components including:
+
+* `PromptTemplate`;
+* `PydanticOutputParser`;
+* `create_agent`;
+* custom tools.
+
+### Pydantic
+
+Used to define and validate structured data models.
+
+The project uses Pydantic models for:
+
+* `UserProfile`;
+* `JobSearchResults`;
+* `Question`;
+* `MockInterview`.
+
+### Streamlit
+
+Used to build the interactive web interface.
+
+### Google Serper
+
+Used to search the web for current job vacancies.
+
+### python-dotenv
+
+Used to load API keys and other environment variables from the `.env` file.
+
+## Project Structure
+
+```text
 Job-Interview-AI-Assistant/
 │
-├── agents/
-│   ├── job_agent.py
-│   ├── tech_lead_agent.py
-│   └── interview_agent.py
-│
-├── main.py
 ├── Job_Assistant_AI.py
-├── streamlit_app.py
 ├── requirements.txt
 ├── README.md
 ├── .gitignore
 ├── .env
 └── .venv/
+```
 
+`.env` and `.venv/` are local files and should not be committed to GitHub.
 
-.env and .venv/ are local files and should not be committed to GitHub.
-
-⚙️ Installation
+## Installation
 
 Clone the repository:
 
+```bash
 git clone https://github.com/AntoninaStadnik/Job-Interview-AI-Assistant.git
-
+```
 
 Navigate to the project directory:
 
+```bash
 cd Job-Interview-AI-Assistant
-
+```
 
 Create a virtual environment:
 
+```bash
 python -m venv .venv
-
+```
 
 Activate the virtual environment on Windows:
 
+```bash
 .venv\Scripts\activate
-
+```
 
 Install the required dependencies:
 
+```bash
 pip install -r requirements.txt
+```
 
-🔑 Environment Variables
+## Environment Variables
 
-Create a .env file in the root directory of the project.
+Create a `.env` file in the root directory of the project.
 
-Add your Google Gemini API key:
+Add the required API keys:
 
-GOOGLE_API_KEY=your_api_key_here
+```env
+GEMINI_API_KEY=your_gemini_api_key
+SERPER_API_KEY=your_serper_api_key
+```
 
+The application uses:
 
-The .env file is excluded from Git using .gitignore.
+* `GEMINI_API_KEY` for Google Gemini;
+* `SERPER_API_KEY` for Google Serper.
 
-Never publish your API key on GitHub.
+The `.env` file is excluded from Git using `.gitignore`.
 
-▶️ Running the Application
+Never publish API keys to GitHub.
+
+## Running the Application
 
 Start the Streamlit application:
 
-streamlit run streamlit_app.py
+```bash
+streamlit run Job_Assistant_AI.py
+```
 
+After running the command, Streamlit will open the application in a browser.
 
-After running the command, Streamlit will open the application in your browser.
+## Project Workflow
 
-🚧 Project Status
+The application follows this workflow:
+
+```text
+1. User enters information about their experience and skills
+                         |
+                         v
+2. User Profile is generated
+                         |
+                         v
+3. Job Search Agent searches for vacancies
+                         |
+                         v
+4. Relevant vacancies are displayed
+                         |
+                         v
+5. User selects a vacancy
+                         |
+                         v
+6. Mock Interview is generated
+                         |
+                         v
+7. 10 technical questions are displayed
+                         |
+                         v
+8. User selects answers
+                         |
+                         v
+9. Application checks the answers
+                         |
+                         v
+10. Correct and incorrect answers are displayed
+```
+
+## Project Status
 
 The project is currently under development.
 
-Completed
+### Completed
 
- Python project setup
+* Python project setup
+* Virtual environment configuration
+* Google Gemini API integration
+* Google Serper API integration
+* LangChain configuration
+* Streamlit interface
+* Structured user profile generation
+* Job vacancy search
+* Job vacancy matching
+* Vacancy selection
+* Mock interview generation
+* Generation of 10 technical questions
+* Four answer options for each question
+* Correct answer validation
+* Interview result calculation
+* Pydantic structured output models
+* Project documentation
 
- Virtual environment configuration
+### In Progress
 
- Google Gemini API connection
+* Detailed feedback for each interview question
+* Interview score calculation
+* Improved Streamlit UI
+* Better vacancy filtering
+* Improved prompt engineering
+* Error handling
 
- LangChain configuration
+## Project Purpose
 
- Streamlit interface setup
+The project was created as an educational and examination project to demonstrate how generative AI can be integrated into a Python application.
 
- Project documentation
+The main learning objectives are:
 
-In Progress
+* working with generative AI models;
+* creating LangChain chains and agents;
+* creating custom AI tools;
+* working with structured LLM output;
+* using Pydantic for data validation;
+* integrating web search with an AI application;
+* managing application state with Streamlit;
+* building an interactive AI-powered web application.
 
- Implement Job Search Agent
-
- Implement Tech Lead Agent
-
- Implement Mock Interview Agent
-
- Add job search functionality
-
- Add skill matching
-
- Add AI interview evaluation
-
- Improve Streamlit UI
-
-🎓 Project Purpose
-
-The project was created as an educational/examination project to demonstrate how generative AI can be integrated into a Python application.
-
-The main focus is on:
-
-working with generative AI models;
-
-creating specialized AI agents;
-
-processing structured data;
-
-integrating AI into a web application;
-
-building an interactive user interface with Streamlit.
-
-🔮 Future Improvements
+## Future Improvements
 
 Possible future improvements include:
 
-more advanced job search;
-
-integration with external job APIs;
-
-improved skill matching;
-
-personalized interview questions;
-
-interview history;
-
-candidate progress tracking;
-
-improved UI/UX;
-
-persistent storage of user data.
+* integration with dedicated job APIs;
+* more advanced job matching;
+* improved skill gap analysis;
+* personalized interview difficulty;
+* detailed feedback for each answer;
+* interview score calculation;
+* interview history;
+* candidate progress tracking;
+* persistent storage of user data;
+* improved UI/UX;
+* authentication and user accounts;
+* automated CV analysis;
+* CV generation and optimization.
